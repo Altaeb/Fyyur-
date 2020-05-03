@@ -253,24 +253,23 @@ def create_venue_submission():
     return render_template('pages/home.html')
 
 
-@app.route('/venues/<venue_id>', methods=['DELETE'])
+@app.route('/venues/<venue_id>/delete', methods=['GET'])
 def delete_venue(venue_id):
-  # TODO: Complete this endpoint for taking a venue_id, and using
-  # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
-
-  # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-  # clicking that button delete it from the db then redirect the user to the homepage
-  return None
+    venue = db.session.query(Venue).filter(Venue.id == venue_id).first()
+    if not venue:
+        flash('No venue to delete')
+        return redirect('/venues')
+    if len(venue.shows) != 0:
+        flash('You can\'t delete venues linked to some shows')
+        return redirect('/artists/'+str(venue_id))
+    db.session.delete(venue)
+    db.session.commit()
+    return redirect('/venues')
 
 #  Artists
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
-  # replace with real data returned from querying the database
-  # {
-  #     "id": 4,
-  #     "name": "Guns N Petals",
-  # }
   artists = db.session.query(Artist).all()
   result = []
   for artist in artists:
@@ -364,6 +363,19 @@ for show in artist.shows:
 result['past_shows_count'] = len(result['past_shows'])
 result['upcoming_shows_count'] = len(result['upcoming_shows'])
 return render_template('pages/show_artist.html', artist=result)
+
+@app.route('/artists/<artist_id>/delete', methods=['GET'])
+def delete_artist(artist_id):
+    artist = db.session.query(Artist).filter(Artist.id == artist_id).first()
+    if not artist:
+        flash('No artist to delete')
+        return redirect('/artists')
+    if len(artist.shows) != 0:
+        flash('You can\'t delete artists linked to some shows')
+        return redirect('/artists/'+str(artist_id))
+    db.session.delete(artist)
+    db.session.commit()
+    return redirect('/artists')
 
 #  Update
 #  ----------------------------------------------------------------

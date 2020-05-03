@@ -209,3 +209,8 @@ h2.monospace {
 .subtitle {
   opacity: 0.5;
 }
+
+.btn--delete {
+  color: black;
+  background-color: orangered;
+}

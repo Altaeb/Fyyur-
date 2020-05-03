@@ -168,10 +168,10 @@ def create_venue_submission():
         # on successful db insert, flash success
         data = request.form
         venue = Venue(name=data['name'], address=data['address'], city=data['city'], state=data['state'],
-                      phone=data['phone'], image_link=data['image_link'], facebook_link=data['facebook_link'],
+                      phone=data['phone'], image_link=data.get('image_link',''), facebook_link=data.get('facebook_link', ''),
                       website=data['website'])
         venue.seeking_talent = True if data['seeking_talent'] == 'true' else False
-        venue.seeking_description = data['seeking_description']
+        venue.seeking_description = data.get('seeking_description', '')
         db.session.add(venue)
         db.session.commit()
         flash('Venue ' + request.form['name'] + ' was successfully listed!')

@@ -56,9 +56,9 @@ class Artist(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    seeking_venue = db.Column(db.Boolean)
+    seeking_venue = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.Text)
-    website = db.column(db.String(120))
+    website = db.Column(db.String(length=120))
     shows = db.relationship('Show', backref='artist')
 
     # implement any missing fields, as a database migration using Flask-Migrate
@@ -340,7 +340,7 @@ def show_artist(artist_id):
 artist = db.session.query(Artist).filter_by(id=artist_id).first()
 if not artist:
     flash('User not found!', 'error')
-    return redirect('/artists')
+  return redirect('/artists')
 result = {
     "id": artist.id,
     "name": artist.name,
@@ -356,22 +356,22 @@ result = {
     "past_shows_count": 0,
     "upcoming_shows_count": 0,
   }
-  now_datetime = datetime.now()
-  for show in artist.shows:
-      show_obj = {
-          "venue_id": show.venue.id,
-          "venue_name": show.venue.name,
-          "venue_image_link": show.venue.image_link,
-          "start_time": show.start_time
-      }
-      print(show.start_time)
-      if show.start_time <= now_datetime:
-          result['past_shows'].append(show_obj)
-      else:
-          result['upcoming_shows'].append(show_obj)
-  result['past_shows_count'] = len(result['past_shows'])
-  result['upcoming_shows_count'] = len(result['upcoming_shows'])
-  return render_template('pages/show_artist.html', artist=result)
+  #  now_datetime = datetime.now()
+for show in artist.shows:
+    show_obj = {
+        "venue_id": show.venue.id,
+        "venue_name": show.venue.name,
+        "venue_image_link": show.venue.image_link,
+        "start_time": str(show.start_time)
+    }
+    print(show.start_time)
+    if show.start_time <= datetime.now():
+        result['past_shows'].append(show_obj)
+    else:
+        result['upcoming_shows'].append(show_obj)
+result['past_shows_count'] = len(result['past_shows'])
+result['upcoming_shows_count'] = len(result['upcoming_shows'])
+return render_template('pages/show_artist.html', artist=result)
 
 #  Update
 #  ----------------------------------------------------------------
@@ -449,6 +449,7 @@ def create_artist_submission():
   artist.genres = ';'.join(form_data.getlist('genres'))
   artist.image_link = form_data['image_link']
   artist.facebook_link = form_data['facebook_link']
+  artist.seeking_venue = False
   db.session.add(artist)
   db.session.commit()
   print(form_data['genres'])

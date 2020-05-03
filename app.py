@@ -428,14 +428,13 @@ def create_artist_submission():
     artist.state = form_data['state']
     artist.phone = form_data['phone']
     artist.genres = ';'.join(form_data.getlist('genres'))
-    artist.image_link = form_data['image_link']
-    artist.facebook_link = form_data['facebook_link']
-    artist.website = form_data['website']
+    artist.image_link = form_data.get('image_link', '')
+    artist.facebook_link = form_data.get('facebook_link', '')
+    artist.website = form_data.get('website', '')
     artist.seeking_venue = True if form_data['seeking_venue']=='true' else False
-    artist.seeking_description = form_data['seeking_description']
+    artist.seeking_description = form_data.get('seeking_description', '')
     db.session.add(artist)
     db.session.commit()
-    print(form_data['genres'])
     # on successful db insert, flash success
     flash('Artist ' + request.form['name'] + ' was successfully listed!')
     # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')

@@ -37,8 +37,8 @@
           {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
         </div>
         <div class="form-group">
-          <label for="genres">Seeking Venue</label>
-          {{ form.seeking_talent(class_ = '', value='true' if venue.seeking_artist else 'false', id='seeking_venue', autofocus = true) }}
+          <label for="genres">Seeking talent</label>
+          {{ form.seeking_talent(class_ = '', value='true' if venue.seeking_artist else 'false', id='seeking_talent', autofocus = true) }}
        </div>
       <div class="form-group">
           <label for="genres">Seeking description</label>

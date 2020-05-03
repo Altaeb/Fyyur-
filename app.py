@@ -24,8 +24,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 # connect to a local postgresql database
-row_to_dict = lambda r: {c.name: str(
-    getattr(r, c.name)) for c in r.__table__.columns}
+row_to_dict = lambda r: {c.name: getattr(r, c.name) for c in r.__table__.columns}
 
 #----------------------------------------------------------------------------#
 # Models.
@@ -200,7 +199,7 @@ def show_venue(venue_id):
       flash('Venue not found')
       redirect('/venues')
   result = row_to_dict(venue)
-  result["genres"] = result["genres"].split(';')
+  result["genres"] = result["genres"].split(';') if result['genres'] else []
   result["past_shows"] = []
   result["upcoming_shows"] = []
   now_datetime = datetime.now()
@@ -402,13 +401,13 @@ def edit_artist(artist_id):
       "facebook_link": artist.facebook_link,
       "website": artist.website,
   }
-  return render_template('forms/edit_artist.html', form=form, artist=artist)
+  return render_template('forms/edit_artist.html', form=form, artist=result)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
-  artist = db.session.query(Artist).filter(Artist.id == artist_id)
+  artist = db.session.query(Artist).filter(Artist.id == artist_id).first()
   form_data = request.form
   artist.name = form_data['name']
   artist.city = form_data['city']
@@ -426,28 +425,41 @@ def edit_artist_submission(artist_id):
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   form = VenueForm()
-  venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-  }
   # TODO: populate form with values from venue with ID <venue_id>
-  venue = db.session.query(Venue).filter(Venue.id==venue_id)
+    venue = db.session.query(Venue).filter(Venue.id==venue_id).first()
+    venue = {
+        "id": venue.id,
+        "name": venue.name,
+        "genres": venue.genres.split(';') if venue.genres else [],
+        "address": venue.address,
+        "city": venue.city,
+        "state": venue.state,
+        "phone": venue.phone,
+        "website": venue.website,
+        "facebook_link": venue.facebook_link,
+        "seeking_talent": venue.seeking_talent,
+        "seeking_description": venue.seeking_description,
+        "image_link": venue.image_link
+    }
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
-  # venue record with ID <venue_id> using the new attributes
+  form_data = request.form
+  venue = db.session.query(Venue).filter(Venue.id == venue_id).first()
+  venue.name = form_data['name']
+  venue.city = form_data['city']
+  venue.state = form_data['state']
+  venue.address = form_data['address']
+  venue.phone = form_data['phone']
+  venue.genres = ';'.join(form_data.getlist('genres'))
+  venue.image_link = form_data['image_link']
+  venue.facebook_link = form_data['facebook_link']
+  venue.website = form_data['website']
+  venue.seeking_talent = True if form_data['seeking_talent'] == 'true' else False
+  venue.seeking_description = form_data['seeking_description']
+  db.session.commit()
   return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist

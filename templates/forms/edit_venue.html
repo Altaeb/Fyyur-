@@ -36,6 +36,14 @@
           <label for="genres">Facebook Link</label>
           {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
         </div>
+        <div class="form-group">
+          <label for="genres">Seeking Venue</label>
+          {{ form.seeking_talent(class_ = '', value='true' if venue.seeking_artist else 'false', id='seeking_venue', autofocus = true) }}
+       </div>
+      <div class="form-group">
+          <label for="genres">Seeking description</label>
+          {{ form.seeking_description(class_ = 'form-control', value=venue.seeking_description, id=form.website, autofocus = true) }}
+       </div>
       <input type="submit" value="Edit Venue" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>

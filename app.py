@@ -44,6 +44,8 @@ class Venue(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    seeking_talent = db.Column(db.Boolean, default=False)
+    seeking_description = db.Column(db.Text)
     website = db.Column(db.String(length=120))
     shows = db.relationship('Show', backref='venue')
 
@@ -238,6 +240,8 @@ def create_venue_submission():
         venue = Venue(name=data['name'], address=data['address'], city=data['city'], state=data['state'],
                       phone=data['phone'], image_link=data['image_link'], facebook_link=data['facebook_link'],
                       website=data['website'])
+        venue.seeking_talent = True if data['seeking_talent'] == 'true' else False
+        venue.seeking_description = data['seeking_description']
         db.session.add(venue)
         db.session.commit()
         flash('Venue ' + request.form['name'] + ' was successfully listed!')
@@ -301,8 +305,6 @@ def search_artists():
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
-  # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
   data1 = {
     "id": 4,
     "name": "Guns N Petals",
@@ -341,6 +343,7 @@ result = {
     "seeking_venue": artist.seeking_venue,
     "seeking_description": artist.seeking_description,
     "image_link": artist.image_link,
+    "facebook_link": artist.facebook_link,
     "website": artist.website,
     "past_shows": [],
     "past_shows_count": 0,
@@ -381,14 +384,43 @@ def edit_artist(artist_id):
     "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
     "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
   }
-  # TODO: populate form with fields from artist with ID <artist_id>
+
+  artist = db.session.query(Artist).filter_by(id=artist_id).first()
+  if not artist:
+      flash('User not found!', 'error')
+      return redirect('/artists')
+  result = {
+      "id": artist.id,
+      "name": artist.name,
+      "genres": artist.genres.split(';'),
+      "city": artist.city,
+      "state": artist.state,
+      "phone": artist.phone,
+      "seeking_venue": artist.seeking_venue,
+      "seeking_description": artist.seeking_description,
+      "image_link": artist.image_link,
+      "facebook_link": artist.facebook_link,
+      "website": artist.website,
+  }
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
-
+  artist = db.session.query(Artist).filter(Artist.id == artist_id)
+  form_data = request.form
+  artist.name = form_data['name']
+  artist.city = form_data['city']
+  artist.state = form_data['state']
+  artist.phone = form_data['phone']
+  artist.genres = ';'.join(form_data.getlist('genres'))
+  artist.image_link = form_data['image_link']
+  artist.facebook_link = form_data['facebook_link']
+  artist.website = form_data['website']
+  artist.seeking_venue = True if form_data['seeking_venue']=='true' else False
+  artist.seeking_description = form_data['seeking_description']
+  db.session.commit()
   return redirect(url_for('show_artist', artist_id=artist_id))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
@@ -409,6 +441,7 @@ def edit_venue(venue_id):
     "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
   }
   # TODO: populate form with values from venue with ID <venue_id>
+  venue = db.session.query(Venue).filter(Venue.id==venue_id)
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
@@ -440,7 +473,8 @@ def create_artist_submission():
   artist.image_link = form_data['image_link']
   artist.facebook_link = form_data['facebook_link']
   artist.website = form_data['website']
-  artist.seeking_venue = False
+  artist.seeking_venue = True if form_data['seeking_venue']=='true' else False
+  artist.seeking_description = form_data['seeking_description']
   db.session.add(artist)
   db.session.commit()
   print(form_data['genres'])

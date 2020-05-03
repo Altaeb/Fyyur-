@@ -23,9 +23,7 @@ app.config.from_object('config')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-
 # connect to a local postgresql database
-
 row_to_dict = lambda r: {c.name: str(
     getattr(r, c.name)) for c in r.__table__.columns}
 
@@ -67,10 +65,6 @@ class Artist(db.Model):
     seeking_description = db.Column(db.Text)
     website = db.Column(db.String(length=120))
     shows = db.relationship('Show', backref='artist')
-
-    # implement any missing fields, as a database migration using Flask-Migrate
-
-# Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
 
 class Show(db.Model):
@@ -155,24 +149,27 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-  # seach for Hop should return "The Musical Hop".
-  # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-  response = {
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
+    search_term = request.form.get('search_term', '')
+    venues = db.session.query(Venue).filter((Venue.name.like('%{}%'.format(search_term))) |
+                                            (Venue.city.like('%{}%'.format(search_term))) |
+                                            (Venue.state.like('%{}%'.format(search_term)))).all()
+    response = {
+        "count": 0,
+        "data": []
   }
-  return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
+    for venue in venues:
+        v_obj = {
+            "id": venue.id,
+            "name": venue.name,
+            "num_upcoming_shows": len(venue.shows)
+        }
+        response["data"].append(v_obj)
+    response['count'] = len(response['data'])
+    return render_template('pages/search_venues.html', results=response, search_term=search_term)
 
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
-  # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
   data1 = {
     "id": 1,
     "name": "The Musical Hop",
@@ -283,18 +280,23 @@ def artists():
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-  # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
-  # search for "band" should return "The Wild Sax Band".
-  response = {
-    "count": 1,
-    "data": [{
-      "id": 4,
-      "name": "Guns N Petals",
-      "num_upcoming_shows": 0,
-    }]
+    search_term = request.form.get('search_term', '')
+    artists = db.session.query(Artist).filter((Artist.name.like('%{}%'.format(search_term))) |
+                                            (Artist.city.like('%{}%'.format(search_term))) |
+                                            (Artist.state.like('%{}%'.format(search_term)))).all()
+    response = {
+        "count": 0,
+        "data": []
   }
-  return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+    for artist in artists:
+        v_obj = {
+            "id": artist.id,
+            "name": artist.name,
+            "num_upcoming_shows": len(artist.shows)
+        }
+        response["data"].append(v_obj)
+    response['count'] = len(response['data'])
+    return render_template('pages/search_artists.html', results=response, search_term=search_term)
 
 
 @app.route('/artists/<int:artist_id>')
@@ -479,9 +481,6 @@ def shows():
 
 @app.route('/shows/search', methods=['POST'])
 def search_shows():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for Hop should return "The Musical Hop".
-    # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
     search_term = request.form.get('search_term', '')
     shows = db.session.query(Show).filter((Show.artist.has(Artist.name.like('%{}%'.format(search_term)))) |
                                           (Show.venue.has(Venue.name.like('%{}%'.format(search_term))))).all()

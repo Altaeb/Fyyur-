@@ -12,10 +12,10 @@
           <label>City & State</label>
           <div class="form-inline">
             <div class="form-group">
-              {{ form.city(class_ = 'form-control', placeholder='city', autofocus = true) }}
+              {{ form.city(class_ = 'form-control', value=artist.city, placeholder='City', autofocus = true) }}
             </div>
             <div class="form-group">
-              {{ form.state(class_ = 'form-control', placeholder='state', autofocus = true) }}
+              {{ form.state(class_ = 'form-control', value=artist.state, placeholder='State', autofocus = true) }}
             </div>
           </div>
       </div>
@@ -29,9 +29,9 @@
         {{ form.genres(class_ = 'form-control', value=artist.genres, placeholder='Genres, separated by commas', id=form.genres, autofocus = true) }}
       </div>
       <div class="form-group">
-        <label for="genres">Image Link</label>
-        {{ form.image_link(class_ = 'form-control', value=artist.image_link, placeholder='http://', id=form.image_link, autofocus = true) }}
-     </div>
+          <label for="genres">Image Link</label>
+          {{ form.image_link(class_ = 'form-control', value=artist.image_link, placeholder='http://', id=form.image_link, autofocus = true) }}
+       </div>
       <div class="form-group">
           <label for="genres">Facebook Link</label>
           {{ form.facebook_link(class_ = 'form-control', value=artist.facebook_link, placeholder='http://', id=form.facebook_link, autofocus = true) }}
